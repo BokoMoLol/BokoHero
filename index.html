@@ -1,0 +1,108 @@
+// Initialize Phaser game
+const config = {
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    backgroundColor: '#000000', // Black background
+    scene: {
+        preload: preload,
+        create: create,
+        update: update
+    }
+};
+
+const game = new Phaser.Game(config);
+
+let columns = ['C', 'V', 'B', 'N', 'M'];
+let notes = [];
+let score = 0;
+let scoreText;
+let noteSpeed = 200; // Speed of falling notes
+let spawnRate = 1000; // Spawn rate in milliseconds
+
+function preload() {
+    // Load assets (if any)
+}
+
+function create() {
+    // Create columns
+    this.graphics = this.add.graphics();
+    const columnWidth = config.width / columns.length;
+
+    for (let i = 0; i < columns.length; i++) {
+        const x = i * columnWidth;
+        this.graphics.lineStyle(2, 0xFFFFFF, 1); // White lines
+        this.graphics.strokeLineShape(new Phaser.Geom.Line(x, 0, x, config.height));
+    }
+
+    // Create score text
+    scoreText = this.add.text(10, 10, 'Score: 0', { font: '20px Arial', fill: '#00FF00' });
+
+    // Spawn notes periodically
+    this.time.addEvent({
+        delay: spawnRate,
+        callback: spawnNote,
+        callbackScope: this,
+        loop: true
+    });
+
+    // Listen for keypresses
+    this.input.keyboard.on('keydown', checkNoteHit, this);
+}
+
+function update(time, delta) {
+    // Update notes
+    for (let i = notes.length - 1; i >= 0; i--) {
+        const note = notes[i];
+        note.y += (noteSpeed * delta) / 1000;
+
+        // Remove notes that fall off the screen
+        if (note.y > config.height) {
+            notes.splice(i, 1);
+            note.destroy();
+        }
+    }
+}
+
+function spawnNote() {
+    const columnIndex = Phaser.Math.Between(0, columns.length - 1);
+    const columnWidth = config.width / columns.length;
+
+    const x = columnIndex * columnWidth + 5;
+    const note = this.add.rectangle(
+        x + columnWidth / 2 - 5,
+        0,
+        columnWidth - 10,
+        20,
+        0x0000FF
+    ); // Blue note
+
+    notes.push(note);
+}
+
+function checkNoteHit(event) {
+    const key = event.key.toUpperCase();
+    const columnIndex = columns.indexOf(key);
+
+    if (columnIndex !== -1) {
+        const columnWidth = config.width / columns.length;
+        const targetY = config.height - 50;
+
+        for (let i = 0; i < notes.length; i++) {
+            const note = notes[i];
+
+            if (
+                note.x > columnIndex * columnWidth &&
+                note.x < (columnIndex + 1) * columnWidth &&
+                Math.abs(note.y - targetY) < 20
+            ) {
+                // Hit detected
+                score++;
+                scoreText.setText('Score: ' + score);
+                notes.splice(i, 1);
+                note.destroy();
+                break;
+            }
+        }
+    }
+}

@@ -1,99 +1,117 @@
-// Import Three.js
-import * as THREE from 'three';
-
-// Core game variables
-let scene, camera, renderer, notes = [], noteSpeed = 0.05, score = 0;
-let activeKeys = {};
-
-// Initialize the game
-function initGame() {
-    // Setup scene, camera, and renderer
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 5;
-
-    renderer = new THREE.WebGLRenderer();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
-    // Add a grid for simplicity
-    createGrid();
-
-    // Spawn notes periodically
-    setInterval(() => spawnNote(), 1000);
-
-    // Listen for keypresses
-    window.addEventListener('keydown', (e) => activeKeys[e.key] = true);
-    window.addEventListener('keyup', (e) => activeKeys[e.key] = false);
-
-    // Start the animation loop
-    animate();
-}
-
-// Create a simple grid for gameplay
-function createGrid() {
-    const gridHelper = new THREE.GridHelper(10, 10);
-    scene.add(gridHelper);
-}
-
-// Spawn a note at a random x-position
-function spawnNote() {
-    const geometry = new THREE.SphereGeometry(0.2, 32, 32);
-    const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-    const note = new THREE.Mesh(geometry, material);
-
-    // Set random x-position and initial y-position
-    note.position.set(Math.random() * 8 - 4, 5, 0);
-    notes.push(note);
-    scene.add(note);
-}
-
-// Check for collisions with the "hit zone"
-function checkCollisions() {
-    notes.forEach((note, index) => {
-        if (note.position.y < -4.5 && note.position.y > -5.5) {
-            const keyHit = Math.floor(note.position.x + 5); // Map x to keys
-            if (activeKeys[keyMappings[keyHit]]) {
-                // Remove the note and increment score
-                scene.remove(note);
-                notes.splice(index, 1);
-                score++;
-                console.log(`Score: ${score}`);
-            }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
         }
-    });
-}
+    </style>
+</head>
+<body>
+    <script type="module">
+        // Import Three.js
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js';
 
-// Animate the game (game loop)
-function animate() {
-    requestAnimationFrame(animate);
+        // Core game variables
+        let scene, camera, renderer, notes = [], noteSpeed = 0.05, score = 0;
+        let activeKeys = {};
 
-    // Move notes downward
-    notes.forEach(note => {
-        note.position.y -= noteSpeed;
-        if (note.position.y < -6) {
-            // Remove notes that fall off the screen
-            scene.remove(note);
-            notes = notes.filter(n => n !== note);
-            console.log('Missed note!');
+        // Initialize the game
+        function initGame() {
+            // Setup scene, camera, and renderer
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 5;
+
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Add a grid for simplicity
+            createGrid();
+
+            // Spawn notes periodically
+            setInterval(() => spawnNote(), 1000);
+
+            // Listen for keypresses
+            window.addEventListener('keydown', (e) => activeKeys[e.key] = true);
+            window.addEventListener('keyup', (e) => activeKeys[e.key] = false);
+
+            // Start the animation loop
+            animate();
         }
-    });
 
-    // Check for collisions
-    checkCollisions();
+        // Create a simple grid for gameplay
+        function createGrid() {
+            const gridHelper = new THREE.GridHelper(10, 10);
+            scene.add(gridHelper);
+        }
 
-    // Render the scene
-    renderer.render(scene, camera);
-}
+        // Spawn a note at a random x-position
+        function spawnNote() {
+            const geometry = new THREE.SphereGeometry(0.2, 32, 32);
+            const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const note = new THREE.Mesh(geometry, material);
 
-// Key mappings (adjust as needed)
-const keyMappings = {
-    0: 'a', // Leftmost key
-    1: 's',
-    2: 'd',
-    3: 'f',
-    4: 'g'  // Rightmost key
-};
+            // Set random x-position and initial y-position
+            note.position.set(Math.random() * 8 - 4, 5, 0);
+            notes.push(note);
+            scene.add(note);
+        }
 
-// Start the game
-initGame();
+        // Check for collisions with the "hit zone"
+        function checkCollisions() {
+            notes.forEach((note, index) => {
+                if (note.position.y < -4.5 && note.position.y > -5.5) {
+                    const keyHit = Math.floor(note.position.x + 5); // Map x to keys
+                    if (activeKeys[keyMappings[keyHit]]) {
+                        // Remove the note and increment score
+                        scene.remove(note);
+                        notes.splice(index, 1);
+                        score++;
+                        console.log(`Score: ${score}`);
+                    }
+                }
+            });
+        }
+
+        // Animate the game (game loop)
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Move notes downward
+            notes.forEach(note => {
+                note.position.y -= noteSpeed;
+                if (note.position.y < -6) {
+                    // Remove notes that fall off the screen
+                    scene.remove(note);
+                    notes = notes.filter(n => n !== note);
+                    console.log('Missed note!');
+                }
+            });
+
+            // Check for collisions
+            checkCollisions();
+
+            // Render the scene
+            renderer.render(scene, camera);
+        }
+
+        // Key mappings (adjust as needed)
+        const keyMappings = {
+            0: 'a', // Leftmost key
+            1: 's',
+            2: 'd',
+            3: 'f',
+            4: 'g'  // Rightmost key
+        };
+
+        // Start the game
+        initGame();
+    </script>
+</body>
+</html>
